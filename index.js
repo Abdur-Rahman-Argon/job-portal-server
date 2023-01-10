@@ -21,6 +21,7 @@ async function run() {
     client.connect();
     const collection = client.db("test").collection("devices");
     const userCollection = client.db("users").collection("user-collection");
+    const jobCollection = client.db("jobs").collection("job-collection");
 
     // create user
     app.post("/user", async (req, res) => {
@@ -39,6 +40,13 @@ async function run() {
         return res.send({ status: true, data: result });
       }
       res.send({ status: false });
+    });
+
+    // create job
+    app.post("/create-job", async (req, res) => {
+      const job = req.body;
+      const result = await jobCollection.insertOne(job);
+      res.send({ status: true, data: result });
     });
   } finally {
     // client.close();
