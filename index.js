@@ -1,6 +1,51 @@
 const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
+const { MongoClient, ServerApiVersion } = require("mongodb");
 const app = express();
 const port = process.env.PORT || 5000;
+
+app.use(cors());
+app.use(express.json());
+
+const uri = `mongodb+srv://${process.env.MongoDB_Uer}:${process.env.MongoDB_Pass}@cluster0.lvcvanp.mongodb.net/?retryWrites=true&w=majority`;
+
+const client = new MongoClient(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverApi: ServerApiVersion.v1,
+});
+
+async function run() {
+  try {
+    client.connect();
+    const collection = client.db("test").collection("devices");
+    const userCollection = client.db("users").collection("user-collection");
+
+    // create user
+    app.post("/user", async (req, res) => {
+      const user = req.body;
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
+
+    // get user
+    app.get("/user/:email", async (req, res) => {
+      const email = req.params.email;
+
+      const result = await userCollection.findOne({ email });
+
+      if (result?.email) {
+        return res.send({ status: true, data: result });
+      }
+      res.send({ status: false });
+    });
+  } finally {
+    // client.close();
+  }
+}
+
+run().catch(console.dir);
 
 app.get("/", (req, res) => {
   res.send("hlw Job portal server");
