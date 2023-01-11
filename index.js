@@ -120,6 +120,36 @@ async function run() {
 
       res.send({ status: false });
     });
+
+    // question reply
+    app.patch("/que-answer", async (req, res) => {
+      const userId = req.body.userId;
+      const reply = req.body.reply;
+
+      const filter = { "queries.id": ObjectId(userId) };
+
+      const updateDoc = {
+        $push: {
+          "queries.$[user].reply": reply,
+        },
+      };
+      const arrayFilter = {
+        arrayFilters: [{ "user.id": ObjectId(userId) }],
+      };
+
+      const result = await jobCollection.updateOne(
+        filter,
+        updateDoc,
+        arrayFilter
+      );
+      if (result.acknowledged) {
+        return res.send({ status: true, data: result });
+      }
+
+      res.send({ status: false });
+    });
+
+    //
   } finally {
     // client.close();
   }
