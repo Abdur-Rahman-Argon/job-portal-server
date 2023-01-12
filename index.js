@@ -19,9 +19,13 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     client.connect();
-    const collection = client.db("test").collection("devices");
+
     const userCollection = client.db("users").collection("user-collection");
     const jobCollection = client.db("jobs").collection("job-collection");
+    const messageCollection = client.db("Message").collection("messages");
+    const conversationCollection = client
+      .db("Message")
+      .collection("conversation");
 
     // create user
     app.post("/user", async (req, res) => {
@@ -42,6 +46,19 @@ async function run() {
       res.send({ status: false });
     });
 
+    // view user
+    app.get("/view-user/:id", async (req, res) => {
+      const id = req.params.id;
+
+      const result = await userCollection.findOne({ _id: ObjectId(id) });
+
+      if (result?.email) {
+        return res.send({ status: true, data: result });
+      }
+      res.send({ status: false });
+    });
+
+    //---------------------------- Job ----------------------------
     // create job
     app.post("/create-job", async (req, res) => {
       const job = req.body;
@@ -174,6 +191,39 @@ async function run() {
       }
 
       res.send({ status: false });
+    });
+
+    //------------------------- Message --------------------
+    // create conversation
+    app.post("/create-conversation", async (req, res) => {
+      const data = req.body;
+      const post = { member: [data.senderId, data.receiverId] };
+      const result = await conversationCollection.insertOne(post);
+      res.send(result);
+    });
+
+    // get conversation
+    app.get("/get-conversation/:userId", async (req, res) => {
+      const senderId = req.params.userId;
+
+      const query = { member: { $in: [senderId] } };
+      const cursor = await conversationCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    // create new massage
+    app.post("/create-message", async (req, res) => {
+      const data = req.body;
+      const message = {
+        conversionId: data.conversionId,
+        senderId: data.senderId,
+        senderInfo: data.senderInfo,
+        textMessage: data.textMessage,
+        sendTime: data.sendTime,
+      };
+      const result = await messageCollection.insertOne(data);
+      res.send(result);
     });
 
     //
