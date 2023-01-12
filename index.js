@@ -84,9 +84,26 @@ async function run() {
     });
 
     //apply
-    app.patch("/apply", async (req, res) => {
-      const userId = req.body.userId;
+    app.patch("/close-job", async (req, res) => {
       const jobId = req.body.jobId;
+
+      const filter = { _id: ObjectId(jobId) };
+      const updateDoc = {
+        $set: { status: "Closed" },
+      };
+      const result = await jobCollection.updateOne(filter, updateDoc);
+
+      if (result.acknowledged) {
+        return res.send({ status: true, data: result });
+      }
+
+      res.send({ status: false });
+    });
+
+    //Close job status
+    app.patch("/apply", async (req, res) => {
+      const jobId = req.body.jobId;
+      const userId = req.body.userId;
       const email = req.body.email;
 
       const filter = { _id: ObjectId(jobId) };
