@@ -214,15 +214,28 @@ async function run() {
 
     // create new massage
     app.post("/create-message", async (req, res) => {
-      const data = req.body;
+      const { conversionId, senderId, senderInfo, textMessage, sendTime } =
+        req.body;
+
       const message = {
-        conversionId: data.conversionId,
-        senderId: data.senderId,
-        senderInfo: data.senderInfo,
-        textMessage: data.textMessage,
-        sendTime: data.sendTime,
+        conversionId,
+        senderId,
+        senderInfo,
+        textMessage,
+        sendTime,
       };
-      const result = await messageCollection.insertOne(data);
+
+      const result = await messageCollection.insertOne(message);
+      res.send(result);
+    });
+
+    // get chat message
+    app.get("/get-messages/:Id", async (req, res) => {
+      const id = req.params.Id;
+      const query = { conversionId: id };
+
+      const cursor = await messageCollection.find(query);
+      const result = await cursor.toArray();
       res.send(result);
     });
 
