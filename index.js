@@ -73,6 +73,16 @@ async function run() {
       res.send({ status: true, data: result });
     });
 
+    //applied job
+    app.get("/employer-jobs/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const cursor = jobCollection.find(query);
+      const result = await cursor.toArray();
+
+      res.send({ status: true, data: result });
+    });
+
     //apply
     app.patch("/apply", async (req, res) => {
       const userId = req.body.userId;
